@@ -10,11 +10,31 @@
 
 var fs = require('fs');
 var Promise = require('bluebird');
+var plucky = require('./callbackReview.js');
+var gitProfile = require('./promisification.js');
+var write = Promise.promisify(fs.writeFile);
 
 
 
-var fetchProfileAndWriteToFile = function(readFilePath, writeFilePath) {
+var fetchProfileAndWriteToFile = function (readFilePath, writeFilePath) {
   // TODO
+  // console.log(plucky);
+  // console.log(gitProfile);
+  var result = plucky.pluckFirstLineFromFile(readFilePath);
+  if (result === undefined) {
+    throw new Error('result was undefined');
+  } else {
+    return result
+      .then(function (name) {
+        if (name) {
+          return gitProfile.getGitHubProfileAsync(name);
+        }
+      })
+      .then(function (profile) {
+        return write(writeFilePath, JSON.stringify(profile));
+      });
+  }
+  // return plucky.pluckFirstLineFromFile(readFilePath)
 };
 
 // Export these functions so we can test them
