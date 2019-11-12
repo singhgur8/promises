@@ -14,27 +14,21 @@ var plucky = require('./callbackReview.js');
 var gitProfile = require('./promisification.js');
 var write = Promise.promisify(fs.writeFile);
 
+var fn = Promise.promisify(plucky.pluckFirstLineFromFile);
+var fn2 = Promise.promisify(gitProfile.getGitHubProfileAsync);
 
 
 var fetchProfileAndWriteToFile = function (readFilePath, writeFilePath) {
   // TODO
   // console.log(plucky);
   // console.log(gitProfile);
-  var result = plucky.pluckFirstLineFromFile(readFilePath);
-  if (result === undefined) {
-    throw new Error('result was undefined');
-  } else {
-    return result
-      .then(function (name) {
-        if (name) {
-          return gitProfile.getGitHubProfileAsync(name);
-        }
-      })
-      .then(function (profile) {
-        return write(writeFilePath, JSON.stringify(profile));
-      });
-  }
-  // return plucky.pluckFirstLineFromFile(readFilePath)
+  return fn(readFilePath)
+    .then(function(name) {
+      return fn2(name);
+    })
+    .then(function (profile) {
+      return write(writeFilePath, JSON.stringify(profile));
+    });
 };
 
 // Export these functions so we can test them
